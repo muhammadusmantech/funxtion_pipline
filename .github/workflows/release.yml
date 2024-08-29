@@ -1,4 +1,4 @@
-name: Build and Release on Push to Main
+name: "Build & Release"
 
 # Trigger the workflow on push to the main branch
 on:
@@ -8,45 +8,40 @@ on:
 
 jobs:
   build:
+    name: Build & Release
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        flutter: [ 3.22.0 ]  # Specify your desired Flutter version
+        java: [ 19.0.2 ]     # Specify your desired Java version
 
     steps:
-      - name: Checkout source code
-        uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin' # You can choose other distributions like 'zulu', 'adopt', etc.
+          java-version: ${{ matrix.java }}
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: 'stable'
+          flutter-version: ${{ matrix.flutter }}
+
+      - name: Flutter Clean
+        run: flutter clean
 
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build APK
-        run: flutter build apk --profile --split-per-abi
+      - name: Build Flutter APK (Profile)
+        run: flutter build apk --profile
 
-      - name: Archive APK
-        uses: actions/upload-artifact@v3
+      - name: Push to Releases
+        uses: ncipollo/release-action@v1
         with:
-          name: app-profile.apk
-          path: build/app/outputs/flutter-apk/app-profile.apk
-
-  release:
-    needs: build
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout source code
-        uses: actions/checkout@v3
-
-      - name: Download Build Artifacts
-        uses: actions/download-artifact@v3
-        with:
-          name: app-profile.apk
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: app-profile.apk
-        env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+          artifacts: "build/app/outputs/apk/profile/*"
+          tag: v1.0.${{ github.run_number }}
+          token: ${{ secrets.TOKEN }}
