@@ -28,7 +28,7 @@ jobs:
       - name: Archive APK
         uses: actions/upload-artifact@v3
         with:
-          name: app-profile.apkgit
+          name: app-profile.apk
           path: build/app/outputs/flutter-apk/app-profile.apk
 
   release:
