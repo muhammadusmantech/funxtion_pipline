@@ -38,7 +38,7 @@ dependencies:
   cupertino_icons: ^1.0.2
   
   ui_tool_kit: 
-    path: ../funxtion-pipline-app/funxtion-ui-sdk/
+    path: funxtion-ui-sdk/
 
 dev_dependencies:
   flutter_test:
