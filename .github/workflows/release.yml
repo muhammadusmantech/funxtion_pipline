@@ -1,0 +1,52 @@
+name: Build and Release on Push to Main
+
+# Trigger the workflow on push to the main branch
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v3
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 'stable'
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build APK
+        run: flutter build apk --profile --split-per-abi
+
+      - name: Archive APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: app-profile.apkgit
+          path: build/app/outputs/flutter-apk/app-profile.apk
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v3
+
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: app-profile.apk
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: app-profile.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
